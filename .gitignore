@@ -1,0 +1,8 @@
+# 忽略 SQLite 数据库文件
+power_network.db
+# 忽略 Python 缓存和虚拟环境
+__pycache__/
+*.pyc
+venv/
+script.py
+view_db.py

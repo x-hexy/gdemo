@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>东京输电网络可视化演示</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .label {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+            border: 1px solid #333;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: move;
+        }
+
+        #refresh-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="refresh-btn">从数据库刷新</button>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        // 初始化地图
+        var map = L.map('map').setView([35.6762, 139.6503], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const MAX_WEIGHT = 10;
+        let networkLayer = null; // 存储网络图层（线路和变电站）
+        let labelsLayer = L.layerGroup().addTo(map); // 存储所有标签的图层组
+
+        // 加载和渲染 GeoJSON 数据
+        function loadNetworkData(data) {
+            // 移除旧的网络图层和标签
+            if (networkLayer) {
+                map.removeLayer(networkLayer);
+            }
+            labelsLayer.clearLayers(); // 清理所有旧标签
+
+            // 创建新图层
+            networkLayer = L.geoJSON(data, {
+                style: function (feature) {
+                    if (feature.properties.voltage === "275kV") {
+                        return { color: "red", weight: 5, opacity: 0.7 };
+                    } else if (feature.properties.voltage === "154kV") {
+                        return { color: "blue", weight: 4, opacity: 0.7 };
+                    } else if (feature.properties.voltage === "66kV") {
+                        return { color: "orange", weight: 3, opacity: 0.7 };
+                    }
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 6,
+                        fillColor: "green",
+                        color: "green",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                },
+                onEachFeature: function (feature, layer) {
+                    var popupContent = "<b>" + feature.properties.name + "</b><br>";
+                    if (feature.properties.voltage) {
+                        popupContent += "电压: " + feature.properties.voltage + "<br>";
+                    } else if (feature.properties.type) {
+                        popupContent += "类型: " + feature.properties.type + "<br>";
+                    }
+
+                    if (feature.geometry.type === "Point") {
+                        var coords = feature.geometry.coordinates;
+                        popupContent += "坐标: [" + coords[0].toFixed(4) + ", " + coords[1].toFixed(4) + "]";
+                        var label = L.marker([coords[1], coords[0]], {
+                            icon: L.divIcon({
+                                className: "label",
+                                html: feature.properties.name + "<br>[" + coords[0].toFixed(4) + ", " + coords[1].toFixed(4) + "]",
+                                iconSize: [100, 40]
+                            }),
+                            draggable: true
+                        });
+                        labelsLayer.addLayer(label); // 添加到标签图层组
+                    } else if (feature.geometry.type === "LineString") {
+                        var coords = feature.geometry.coordinates;
+                        popupContent += "起点: [" + coords[0][0].toFixed(4) + ", " + coords[0][1].toFixed(4) + "]<br>";
+                        popupContent += "终点: [" + coords[coords.length - 1][0].toFixed(4) + ", " + coords[coords.length - 1][1].toFixed(4) + "]";
+
+                        var startLabel = L.marker([coords[0][1], coords[0][0]], {
+                            icon: L.divIcon({
+                                className: "label",
+                                html: "起点: [" + coords[0][0].toFixed(4) + ", " + coords[0][1].toFixed(4) + "]",
+                                iconSize: [100, 40]
+                            }),
+                            draggable: true
+                        });
+                        var endLabel = L.marker([coords[coords.length - 1][1], coords[coords.length - 1][0]], {
+                            icon: L.divIcon({
+                                className: "label",
+                                html: "终点: [" + coords[coords.length - 1][0].toFixed(4) + ", " + coords[coords.length - 1][1].toFixed(4) + "]",
+                                iconSize: [100, 40]
+                            }),
+                            draggable: true
+                        });
+
+                        var initialWeight = layer.options.weight;
+                        layer.on({
+                            mouseover: function () {
+                                var newWeight = Math.min(initialWeight + 2, MAX_WEIGHT);
+                                this.setStyle({ weight: newWeight, opacity: 1 });
+                                startLabel.addTo(map);
+                                endLabel.addTo(map);
+                            },
+                            mouseout: function () {
+                                this.setStyle({ weight: initialWeight, opacity: 0.7 });
+                                map.removeLayer(startLabel);
+                                map.removeLayer(endLabel);
+                            }
+                        });
+                    }
+                    layer.bindPopup(popupContent);
+                }
+            }).addTo(map);
+        }
+
+        // 默认加载 network.geojson
+        fetch('network.geojson')
+            .then(response => response.json())
+            .then(data => loadNetworkData(data))
+            .catch(error => console.error('加载 GeoJSON 文件失败:', error));
+
+        // 从数据库刷新
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            fetch('http://localhost:5000/network')
+                .then(response => response.json())
+                .then(data => loadNetworkData(data))
+                .catch(error => {
+                    console.error('从数据库刷新数据失败:', error);
+                    alert('无法从数据库加载数据，请确保后端服务已启动！');
+                });
+        });
+    </script>
+</body>
+
+</html>

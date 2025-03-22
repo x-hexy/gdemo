@@ -1,0 +1,153 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    139.7,
+                    35.7
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Station A",
+                "type": "Substation"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    139.75,
+                    35.65
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Station B",
+                "type": "Substation"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.6,
+                        35.6
+                    ],
+                    [
+                        139.7,
+                        35.7
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 1",
+                "voltage": "275kV"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.7,
+                        35.7
+                    ],
+                    [
+                        139.8,
+                        35.7
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 2",
+                "voltage": "275kV"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.62,
+                        35.68
+                    ],
+                    [
+                        139.7,
+                        35.7
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 3",
+                "voltage": "154kV"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.7,
+                        35.7
+                    ],
+                    [
+                        139.75,
+                        35.65
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 4",
+                "voltage": "154kV"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.75,
+                        35.65
+                    ],
+                    [
+                        139.8,
+                        35.6
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 5",
+                "voltage": "66kV"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        139.68,
+                        35.68
+                    ],
+                    [
+                        139.75,
+                        35.65
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Tokyo Line 6",
+                "voltage": "66kV"
+            }
+        }
+    ]
+}
